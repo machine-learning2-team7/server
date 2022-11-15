@@ -1,4 +1,4 @@
 .PHONY: dev
 
 dev:
-	python3.10 src/app.py
+	python3.10 main.py

@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -9,7 +8,7 @@ model = AutoModelForCausalLM.from_pretrained("Salesforce/codegen-350M-multi")
 
 class Code(BaseModel):
     lang: str
-    input: str
+    text: str
 
 
 app = FastAPI()
@@ -36,8 +35,4 @@ def do_predict(input: str):
 
 @app.post("/predict")
 def predict(code: Code):
-    return do_predict(code.input)
-
-
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True, debug=True, workers=1)
+    return do_predict(code.text)
