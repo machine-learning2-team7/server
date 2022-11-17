@@ -2,8 +2,8 @@ import os
 
 import uvicorn
 
-port = os.environ.get("PORT", 8000)
-is_production = os.environ.get("PRODUCTION", False)
+port = int(os.environ.get("PORT", 8000))
+is_production = bool(os.environ.get("PRODUCTION", False))
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -8,3 +8,7 @@ dev:
 # docker tag code-comment-prediction registry.heroku.com/code-comment-prediction/web
 # docker push registry.heroku.com/code-comment-prediction/web
 # heroku container:release web -a code-comment-prediction
+
+# google
+# docker tag code-comment-prediction gcr.io/code-comment-prediction/api
+# docker push gcr.io/code-comment-prediction/api

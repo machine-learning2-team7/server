@@ -1,26 +1,22 @@
 import os
 
+import redis
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from src.models import Input
+from src.predict import do_predict
 
-class Code(BaseModel):
-    lang: str
-    text: str
+load_dotenv()
 
+import redis
 
-app = FastAPI()
-dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, "assets")
-app.mount(
-    "/assets", StaticFiles(directory=os.path.join(dirname, filename)), name="assets"
+r = redis.Redis(
+    host=os.environ.get("REDIS_HOST"),
+    port=11079,
+    password=os.environ.get("REDIS_PASSWORD"),
 )
-
-tokenizer = AutoTokenizer.from_pretrained(os.path.join(dirname, "assets/tokenizer"))
-model = AutoModelForCausalLM.from_pretrained(os.path.join(dirname, "assets/model"))
 
 
 app = FastAPI()
@@ -34,13 +30,24 @@ app.add_middleware(
 )
 
 
-def do_predict(input: str):
-    input_ids = tokenizer(input, return_tensors="pt").input_ids
+@app.get("/")
+def home():
+    return {"message": "Hello World"}
 
-    generated_ids = model.generate(input_ids, max_length=128)
-    return tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+
+@app.get("/predict")
+def predict_wrong_method():
+    return {
+        "message": "You are visiting the /predict via get request, for code generation use post request instead"
+    }
 
 
 @app.post("/predict")
-def predict(code: Code):
-    return do_predict(code.text)
+def predict(input: Input):
+    text = input.text.strip()
+    if r.hexists(input.lang, text):
+        return r.hget(input.lang, text)
+    else:
+        result = do_predict(text)
+        r.hset(input.lang, text, result)
+        return result
