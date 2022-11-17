@@ -1,9 +1,10 @@
+import os
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
-
-tokenizer = AutoTokenizer.from_pretrained("Salesforce/codegen-350M-multi")
-model = AutoModelForCausalLM.from_pretrained("Salesforce/codegen-350M-multi")
 
 
 class Code(BaseModel):
@@ -12,8 +13,15 @@ class Code(BaseModel):
 
 
 app = FastAPI()
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, "assets")
+app.mount(
+    "/assets", StaticFiles(directory=os.path.join(dirname, filename)), name="assets"
+)
 
-from fastapi.middleware.cors import CORSMiddleware
+tokenizer = AutoTokenizer.from_pretrained(os.path.join(dirname, "assets/tokenizer"))
+model = AutoModelForCausalLM.from_pretrained(os.path.join(dirname, "assets/model"))
+
 
 app = FastAPI()
 
